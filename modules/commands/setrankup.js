@@ -1,6 +1,6 @@
 module.exports.config = {
     name: "setrankup",
-    version: "1.0.3",
+    version: "1.0.2",
     hasPermssion: 1,
     credits: "Mirai Team",
     description: "Chỉnh sửa văn bản/ảnh động khi có thành viên mới vừa lên cấp",
@@ -25,7 +25,7 @@ module.exports.onLoad = function () {
 
 module.exports.run = async function ({ args, event, api, Threads }) {
     try {
-        const { existsSync, createReadStream } = global.nodemodule["fs-extra"];
+        const { existsSync } = global.nodemodule["fs-extra"];
         const { join } = global.nodemodule["path"];
         const { threadID, messageID } = event;
         const msg = args.slice(1, args.length).join(" ");
@@ -44,7 +44,7 @@ module.exports.run = async function ({ args, event, api, Threads }) {
                 });
             }
             case "gif": {
-                const path = join(__dirname, "cache", "rankup");
+                const path = join(__dirname, "events", "cache", "rankup");
                 const pathGif = join(path, `${threadID}.gif`);
                 if (msg == "remove") {
                     if (!existsSync(pathGif)) return api.sendMessage("Nhóm của bạn chưa từng cài đặt levelup gif", threadID, messageID);
@@ -56,6 +56,7 @@ module.exports.run = async function ({ args, event, api, Threads }) {
                     try {
                         await global.utils.downloadFile(msg, pathGif);
                     } catch (e) { return api.sendMessage("Không thể tải file vì url không tồn tại hoặc bot đã xảy ra vấn đề về mạng!", threadID, messageID); }
+
                     return api.sendMessage({ body: "Đã lưu file gif của nhóm bạn thành công, bên dưới đây là preview:", attachment: createReadStream(pathGif) }, threadID, messageID);
                 }
             }

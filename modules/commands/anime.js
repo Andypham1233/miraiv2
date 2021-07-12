@@ -1,6 +1,6 @@
 module.exports.config = {
 	name: "anime",
-	version: "1.0.1",
+	version: "1.0.0",
 	hasPermssion: 0,
 	credits: "Mirai Team",
 	description: "Random lấy ảnh anime! (Safe For Work)",
@@ -14,13 +14,31 @@ module.exports.config = {
     }
 };
 
+module.exports.onLoad = async function () {
+    const { resolve } = global.nodemodule["path"];
+    const { existsSync, readFileSync } = global.nodemodule["fs-extra"];
+
+    const path = resolve(__dirname, 'cache', 'anime.json');
+    const url = "https://raw.githubusercontent.com/catalizcs/storage-data/master/anime/anime.json";
+
+    try {
+        if (!existsSync(path)) await global.utils.downloadFile(url, path);
+
+        const data = JSON.parse(readFileSync(path));
+
+        if (data.length == 0) await global.utils.downloadFile(url, path);
+        return;
+    } catch (error) { await global.utils.downloadFile(url, path) };
+    
+};
+
 module.exports.getAnime = async function (type) {
     try {
         const { readFileSync } = global.nodemodule["fs-extra"];
         const { join } = global.nodemodule["path"];
         const { getContent, downloadFile, randomString } = global.utils;
 
-        const animeData = JSON.parse(readFileSync(await global.utils.assets.data("ANIME")));
+        const animeData = JSON.parse(readFileSync(__dirname + "/cache/anime.json"));
         
         const dataImage = (await getContent(animeData[type])).data;
 
@@ -44,8 +62,8 @@ module.exports.run = async function({ event, api, args }) {
     const { createReadStream, unlinkSync, readFileSync } = global.nodemodule["fs-extra"];
     const { threadID, messageID } = event;
 
-    const animeData = JSON.parse(readFileSync(await global.utils.assets.data("ANIME")));
-    
+    const animeData = JSON.parse(readFileSync(__dirname + "/cache/anime.json"));
+
     if (!animeData.hasOwnProperty(args[0])) {
         var list = [];
         Object.keys(animeData).forEach(endpoint => list.push(endpoint));

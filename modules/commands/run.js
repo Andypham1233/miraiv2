@@ -1,6 +1,6 @@
 module.exports.config = {
 	name: "run",
-	version: "1.0.1",
+	version: "1.0.0",
 	hasPermssion: 2,
 	credits: "Mirai Team",
 	description: "running shell",
@@ -8,25 +8,24 @@ module.exports.config = {
 	usages: "[Script]",
 	cooldowns: 5,
 	dependencies: {
-		"eval": ""
+		"vm2": ""
 	}
 };
 
 module.exports.run = async function({ api, event, args, Threads, Users, Currencies, models }) {
-	const eval = require("eval");
-	const output = function (a) {
-		if (typeof a === "object" || typeof a === "array") {
-			if (Object.keys(a).length != 0) a = JSON.stringify(a);
-			else a = "done!";
-		}
-
-		if (typeof a === "number") a = a.toString();
-		
-		return api.sendMessage(a, event.threadID, event.messageID);
-	}
+	const { VM } = global.nodemodule["vm2"];
+	var out = async (a) => api.sendMessage(`${a}`, event.threadID, event.messageID);
+	const vm = new VM({
+		eval: false,
+		wasm: false,
+		timeout: 100,
+		console: 'inherit',
+		sandbox: { process, out, api, event, args, Threads, Users, Currencies, models, global },
+	});
 	try {
-		const response = await eval(args.join(" "), { output, api, event, args, Threads, Users, Currencies, models, global }, true);
-		return output(response);
+		vm.run(args.join(" "), vm.js);
 	}
-	catch (e) { return output(e) };
+	catch (e) {
+		out(`${e.name}: ${e.message}`);
+	}
 }
